@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React, { useEffect } from "react";
 // nodejs library that concatenates classes
 import classNames from "classnames";
 // react plugin used to create charts
@@ -50,7 +50,24 @@ import {
   chartExample4,
 } from "variables/charts.js";
 
+import axios from "axios";
+
 function Dashboard(props) {
+  const [fuelLogs, setFuelLogs] = React.useState([]);
+
+  useEffect(() => {
+    axios
+      .get(
+        "http://127.0.0.1:8080/api/fuelLogs/getFuelLogs/dashboard/65e0d5a3c4ce269aa6e1367d"
+      )
+      .then((response) => {
+        console.log(response);
+        setFuelLogs(response.data);
+      });
+  }, []);
+
+  console.log(fuelLogs, " 222");
+
   const [bigChartData, setbigChartData] = React.useState("data1");
   const setBgChartData = (name) => {
     setbigChartData(name);
@@ -482,30 +499,18 @@ function Dashboard(props) {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>12/12/2021</td>
-                      <td>Suzuki Alto - AGV 702</td>
-                      <td>34,000</td>
-                      <td>22</td>
-                      <td className="text-center">180</td>
-                      <td>6,000</td>
-                    </tr>
-                    <tr>
-                      <td>12/12/2021</td>
-                      <td>Suzuki Alto - AGV 702</td>
-                      <td>34,000</td>
-                      <td>22</td>
-                      <td className="text-center">180</td>
-                      <td>6,000</td>
-                    </tr>
-                    <tr>
-                      <td>12/12/2021</td>
-                      <td>Suzuki Alto - AGV 702</td>
-                      <td>34,000</td>
-                      <td>22</td>
-                      <td className="text-center">180</td>
-                      <td>6,000</td>
-                    </tr>
+                    {fuelLogs.map((fuelLog) => (
+                      <tr id={fuelLog._id}>
+                        <td>{new Date(fuelLog.date).toLocaleDateString()}</td>
+                        <td>{fuelLog.car}</td>
+                        <td>{fuelLog.millage}</td>
+                        <td>{fuelLog.liters}</td>
+                        <td className="text-center">
+                          {fuelLog.cost_per_liter}
+                        </td>
+                        <td>{fuelLog.cost}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
               </CardBody>
