@@ -54,6 +54,13 @@ import axios from "axios";
 
 function Dashboard(props) {
   const [fuelLogs, setFuelLogs] = React.useState([]);
+  const [fuelCostPerMonth, setFuelCostPerMonth] = React.useState(false);
+  const [totalFuelCost, setTotalFuelCost] = React.useState(0);
+
+  const [fuelCostPerCar, setFuelCostPerCar] = React.useState(false);
+  const [averageFuelCostPerCar, setAverageFuelCostPerCar] = React.useState(0);
+
+  console.log(chartExample2, "  33333333333");
 
   useEffect(() => {
     axios
@@ -66,7 +73,109 @@ function Dashboard(props) {
       });
   }, []);
 
+  useEffect(() => {
+    axios
+      .get(
+        "http://127.0.0.1:8080/api/fuelLogs/getFuelLogs/dashboard/fuelCostperMonth/65e0d5a3c4ce269aa6e1367d"
+      )
+      .then((response) => {
+        console.log(response);
+
+        const labels = response?.data?.map((fuelCost) => {
+          const month = convertToMonth(fuelCost._id.month);
+          return `${month} ${fuelCost._id.year}`;
+        });
+
+        function convertToMonth(monthNumber) {
+          switch (monthNumber) {
+            case 1:
+              return "Jan";
+            case 5:
+              return "Feb";
+            case 3:
+              return "Mar";
+            // Add more cases for other months if needed
+            default:
+              return "";
+          }
+        }
+
+        let total = 0;
+
+        const fuelCostPerMonth = response?.data?.map((fuelCost) => {
+          total += fuelCost.totalCost;
+          return fuelCost.totalCost;
+        });
+
+        setTotalFuelCost(total);
+
+        // const labels = [];
+        // const fuelCostPerMonth = [];
+
+        console.log(labels, " 5555555");
+
+        setFuelCostPerMonth({
+          labels: labels,
+          datasets: [
+            {
+              data: fuelCostPerMonth,
+              borderColor: "#f96332",
+              backgroundColor: "#f96332",
+              pointBackgroundColor: "#f96332",
+              pointBorderColor: "#f96332",
+            },
+          ],
+        });
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get(
+        "http://127.0.0.1:8080/api/fuelLogs/getFuelLogs/dashboard/fuelCostperCar/65e0d5a3c4ce269aa6e1367d"
+      )
+      .then((response) => {
+        console.log(response);
+
+        const labels = response?.data?.map((fuelCost) => {
+          return fuelCost._id;
+        });
+
+        let totalCars = 0;
+        let total = 0;
+
+        const fuelCostPerCar = response?.data?.map((fuelCost) => {
+          totalCars += 1;
+          total += fuelCost.totalCost;
+          return fuelCost.totalCost;
+        });
+
+        const average = total / totalCars;
+
+        setAverageFuelCostPerCar(average);
+
+        // const labels = [];
+        // const fuelCostPerMonth = [];
+
+        console.log(labels, " 5555555");
+
+        setFuelCostPerCar({
+          labels: labels,
+          datasets: [
+            {
+              data: fuelCostPerCar,
+              borderColor: "#f96332",
+              backgroundColor: "#f96332",
+              pointBackgroundColor: "#f96332",
+              pointBorderColor: "#f96332",
+            },
+          ],
+        });
+      });
+  }, []);
+
   console.log(fuelLogs, " 222");
+  console.log(fuelCostPerMonth, " 222");
 
   const [bigChartData, setbigChartData] = React.useState("data1");
   const setBgChartData = (name) => {
@@ -159,17 +268,20 @@ function Dashboard(props) {
           <Col lg="4">
             <Card className="card-chart">
               <CardHeader>
-                <h5 className="card-category">Fuel Cost per Month</h5>
+                <h5 className="card-category">Fuel Cost per Month ff </h5>
                 <CardTitle tag="h3">
-                  <i className="tim-icons icon-bell-55 text-info" /> 763,215 PKR
+                  <i className="tim-icons icon-bell-55 text-info" />{" "}
+                  {totalFuelCost.toLocaleString()} PKR
                 </CardTitle>
               </CardHeader>
               <CardBody>
                 <div className="chart-area">
-                  <Line
-                    data={chartExample2.data}
-                    options={chartExample2.options}
-                  />
+                  {fuelCostPerMonth && (
+                    <Line
+                      data={fuelCostPerMonth}
+                      options={chartExample2.options}
+                    />
+                  )}
                 </div>
               </CardBody>
             </Card>
@@ -180,15 +292,17 @@ function Dashboard(props) {
                 <h5 className="card-category">Fuel Spent per Car </h5>
                 <CardTitle tag="h3">
                   <i className="tim-icons icon-delivery-fast text-primary" />{" "}
-                  3,500€
+                  {averageFuelCostPerCar.toLocaleString()} PKR
                 </CardTitle>
               </CardHeader>
               <CardBody>
                 <div className="chart-area">
-                  <Bar
-                    data={chartExample3.data}
-                    options={chartExample3.options}
-                  />
+                  {fuelCostPerCar && (
+                    <Bar
+                      data={fuelCostPerCar}
+                      options={chartExample3.options}
+                    />
+                  )}
                 </div>
               </CardBody>
             </Card>
@@ -499,16 +613,16 @@ function Dashboard(props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {fuelLogs.map((fuelLog) => (
+                    {fuelLogs?.map((fuelLog) => (
                       <tr id={fuelLog._id}>
                         <td>{new Date(fuelLog.date).toLocaleDateString()}</td>
                         <td>{fuelLog.car}</td>
                         <td>{fuelLog.millage}</td>
-                        <td>{fuelLog.liters}</td>
+                        <td>{fuelLog.liters.toFixed(2).toLocaleString()}</td>
                         <td className="text-center">
-                          {fuelLog.cost_per_liter}
+                          {fuelLog.cost_per_liter.toFixed(2).toLocaleString()}
                         </td>
-                        <td>{fuelLog.cost}</td>
+                        <td>{fuelLog.cost.toFixed(2).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
