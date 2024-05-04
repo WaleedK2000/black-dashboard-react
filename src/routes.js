@@ -99,5 +99,13 @@ var routes = [
     component: <Rtl />,
     layout: "/rtl",
   },
+  {
+    path: "/dashboard",
+    name: "RTL Support",
+    rtlName: "frfrffr",
+    icon: "tim-icons icon-world",
+    component: <Dashboard />,
+    layout: "/user",
+  },
 ];
 export default routes;
